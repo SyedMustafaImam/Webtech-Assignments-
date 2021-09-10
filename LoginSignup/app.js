@@ -8,7 +8,9 @@ var encoder = new util.TextEncoder('utf-8');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var loginRouter = require('./routes/login');
-
+var LocalStorage = require('node-localstorage').LocalStorage,
+localStorage = new LocalStorage('./scratch');
+localStorage.clear()
 
 var app = express();
 

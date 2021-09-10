@@ -1,4 +1,6 @@
 var db = require('../models/index')
+var LocalStorage = require('node-localstorage').LocalStorage,
+localStorage = new LocalStorage('./scratch');
 
 exports.get_login = (req, res) => {
     res.render('login', { title: 'login', notValid: true })
@@ -7,28 +9,34 @@ exports.get_login = (req, res) => {
 exports.post_login = async (req, res) => {
     // console.log(req.body);
     const { email, password } = req.body
+    console.log('email :>> ', email);
     var userData;
-    await db.User.findOne({
-        $or: [
-            { userName: email },
-            { email: email }
-        ]
-    }).then(result => {
+    await db.User.findOne(
+        {
+            $or: [
+                { userName: email },
+                { email: email }]
+        }
+    ).then(result => {
         userData = result
     }).catch(err => console.log(err))
 
     if (userData != null) {
-        if (req.body.email === 'smustafa086@gmail.com' && req.body.password == 'abc.123') {
+        console.log('userData :>> ', userData);
+        if ((email === userData.email || email ===userData.userName) && password === userData.password) {
+            localStorage.setItem('userEmail',userData.email )
             res.redirect('/profile')
         } else {
-            res.render('login', { title: 'Login', notValid: false })
+            res.render('login', { title: 'Login', notValid: false, alertData: 'Invalid userid or password!'  })
 
         }
 
     }
+else{
+    res.render('login', { title: 'Login', notValid: false, alertData: 'No record found.' })
+}
 
-
-    res.end()
+    // res.end()
 }
 
 exports.get_signup = (req, res) => {
@@ -69,7 +77,7 @@ exports.post_signup = async (req, res) => {
             newUser.save().
                 then(
                     (result) => {
-                        console.log('Result Posted: ', result)
+                        console.log('Result Posted')
                         res.redirect('/login')
                     }
                 ).
@@ -80,4 +88,9 @@ exports.post_signup = async (req, res) => {
     else {
         res.render('signup', { title: 'SignUp', notValid: false, alertData: 'Please fill out every field.' })
     }
+}
+
+exports.logout = function (req, res){
+localStorage.clear();
+res.redirect('/login')
 }
